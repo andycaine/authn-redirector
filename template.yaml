@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lamda@Edge function that redirects clients to a login endpoint if the origin returns a 401 response.
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+
+    LoggingConfig:
+      LogFormat: JSON
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: authn-redirector
+    Description: Lamda@Edge function that redirects clients to a login endpoint if the origin returns a 401 response.
+    Author: Andy Caine
+    SpdxLicenseId: MIT
+    LicenseUrl: LICENSE
+    ReadmeUrl: README.md
+    Labels: ['authentication', 'lambda', 'CloudFront']
+    HomePageUrl: https://github.com/andycaine/authn-redirector#readme
+    SemanticVersion: 0.1.0
+    SourceCodeUrl: https://github.com/andycaine/authn-redirector
+
+Resources:
+
+  RedirectToLoginOn401:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        import urllib.parse
+
+        def handler(event, context):
+            response = event['Records'][0]['cf']['response']
+            request = event['Records'][0]['cf']['request']
+
+            if int(response['status']) == 401:
+                orig_path = f"{request['uri']}"
+                if request['querystring']:
+                    orig_path += f"?{request['querystring']}"
+                next_enc = urllib.parse.quote_plus(orig_path)
+                redirect_path = f'/auth/login?next={next_enc}'
+
+                response['status'] = 302
+                response['statusDescription'] = 'Found'
+
+                # Drop the body as it is not required for redirects
+                response['body'] = ''
+                response['headers']['location'] = [{
+                    'key': 'Location',
+                    'value': redirect_path
+                }]
+
+            return response
+      Handler: index.handler
+      Runtime: python3.12
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - edgelambda.amazonaws.com
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Architectures:
+        - x86_64
+
+  RedirectToLoginOn401Version:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref RedirectToLoginOn401
+
+Outputs:
+  RedirectorFunctionVersion:
+    Description: Arn of the lambda function version that does the redirects
+    Value: !Ref RedirectToLoginOn401Version
