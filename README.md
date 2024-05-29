@@ -1,4 +1,4 @@
-# authy
+# authn-redirector
 
 Lamda@Edge function that redirects clients to a login endpoint if the origin returns a 401 response.
 
