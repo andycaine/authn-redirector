@@ -8,7 +8,7 @@ When building a web app, we normally want a user that fails authentication check
 
 ## Getting started
 
-`authn-redirector` is available via the AWS Serverless Application Repository. Include it in your SAM / CloudFormation template as a serverless application`, or deploy directly from the [AWS Serverless Application Repository](https://eu-west-2.console.aws.amazon.com/lambda/home?region=eu-west-2#/create/app?applicationId=arn:aws:serverlessrepo:eu-west-2:211125310871:applications/authn-redirector).
+`authn-redirector` is available via the AWS Serverless Application Repository. Include it in your SAM / CloudFormation template as a serverless application, or deploy directly from the [AWS Serverless Application Repository](https://eu-west-2.console.aws.amazon.com/lambda/home?region=eu-west-2#/create/app?applicationId=arn:aws:serverlessrepo:eu-west-2:211125310871:applications/authn-redirector).
 
 ```yaml
 AuthnRedirector:
